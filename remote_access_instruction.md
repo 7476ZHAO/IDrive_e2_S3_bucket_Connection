@@ -2,7 +2,7 @@
 
 To run this project on the server, each user must configure their own environment.
 
-### 1. SSH into the server
+### 1. SSH into the server(or other ways)
 
 ```bash
 ssh your_username@server_address
