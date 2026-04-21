@@ -8,7 +8,7 @@ This project requires the following system-level dependencies to run successfull
 
 Apache Spark requires Java to run.
 
-Install OpenJDK 11:
+Install OpenJDK 17:
 
 ```bash
 sudo apt update
