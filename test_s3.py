@@ -5,7 +5,7 @@ spark = get_spark()
 # 1️ Create a local DataFrame
 df = spark.createDataFrame([
     (1, "Alice"),
-    (2, "Bob")
+    (2, "Sarah")
 ], ["id", "name"])
 
 # 2️ Write to S3 (Delta format)
