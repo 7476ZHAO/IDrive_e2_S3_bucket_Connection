@@ -8,7 +8,7 @@ This project connects Apache Spark with IDrive e2 (S3-compatible object storage)
 
 ---
 
-## Architecture
+## Data Loading Architecture
 
 ```text
 You run training.py 
