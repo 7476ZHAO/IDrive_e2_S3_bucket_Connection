@@ -1,4 +1,5 @@
 from spark_session import get_spark
+from config import DATA_PATH
 
 spark = get_spark()
 
@@ -9,8 +10,8 @@ df = spark.createDataFrame([
 ], ["id", "name"])
 
 # 2️ Write to S3 (Delta format)
-df.write.format("delta").mode("overwrite").save("s3a://3c-scsu-bucket/test")
+df.write.format("delta").mode("overwrite").save(DATA_PATH)
 
 # 3️ Read back from S3 to verify
-df2 = spark.read.format("delta").load("s3a://3c-scsu-bucket/test")
+df2 = spark.read.format("delta").load(DATA_PATH)
 df2.show()
