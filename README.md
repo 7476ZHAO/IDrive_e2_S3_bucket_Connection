@@ -4,7 +4,7 @@
 
 ## Overview
 
-This project demonstrates how to integrates Apache Spark with IDrive e2 (S3-compatible object storage) to enable scalable data access and processing via the `s3a://` protocol. It demonstrates an end-to-end data pipeline using Spark and Delta Lake.
+This project demonstrates how to integrate Apache Spark with IDrive e2 (S3-compatible object storage) to enable scalable data access and processing via the `s3a://` protocol. It demonstrates an end-to-end data pipeline using Spark and Delta Lake.
 
 ---
 
