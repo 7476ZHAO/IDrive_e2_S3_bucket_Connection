@@ -1,5 +1,9 @@
-from data_loader import load_data
+from spark_session import get_spark
+from data_io import load_data, save_data
 from model import train
 
-df = load_data()   # retrieve data
-train(df)          # training model
+spark = get_spark()
+
+df = load_data(spark)        # retrieve data
+result_df = train(df)        # training model
+save_data(result_df, spark)  # save results
