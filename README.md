@@ -46,6 +46,19 @@ Data stored in S3
 
 ## Setup
 
+### 0. System Requirements
+
+Ensure the following are installed on your system:
+
+- Python 3.8+
+- Java (JDK 8 or 11 or 17)
+
+> PySpark is installed via `requirements.txt` and includes a local Spark runtime.
+
+> Spark requires Java to run properly.
+
+---
+
 ### 1. Configure Server Credentials
 
 Create AWS-style credentials on the server:
@@ -132,6 +145,12 @@ def load_data(spark):
 
 def save_data(df, spark):
     df.write.format("delta").mode("overwrite").save(DATA_PATH)
+```
+
+### 5. Install Dependencies (if not already installed)
+
+```bash
+pip install -r requirements.txt
 ```
 
 ---
