@@ -4,7 +4,7 @@
 
 ## Overview
 
-This project integrates Apache Spark with IDrive e2 (S3-compatible object storage) to enable scalable data access and processing via the `s3a://` protocol. It demonstrates an end-to-end data pipeline using Spark and Delta Lake.
+This project demonstrates how to integrates Apache Spark with IDrive e2 (S3-compatible object storage) to enable scalable data access and processing via the `s3a://` protocol. It demonstrates an end-to-end data pipeline using Spark and Delta Lake.
 
 ---
 
@@ -46,7 +46,7 @@ Data stored in S3
 
 ## Setup
 
-### 1. Configure Credentials (Server)
+### 1. Configure Server Credentials
 
 Create AWS-style credentials on the server:
 
@@ -80,7 +80,7 @@ S3_ENDPOINT=https://s3.us-west-1.idrivee2.com
 DATA_PATH=s3a://your-bucket/jiali/test
 ```
 
-Create a config.py file to load environment variables:
+Create a `config.py` file to load environment variables:
 
 ```python
 from dotenv import load_dotenv
@@ -92,9 +92,9 @@ S3_ENDPOINT = os.getenv("S3_ENDPOINT")
 DATA_PATH = os.getenv("DATA_PATH")
 ```
 
-Make sure .env is included in .gitignore and not committed to the repository.
+Make sure `.env` is included in `.gitignore` and not committed to the repository.
 
-### 3. Create a File spark_session.py to Configure Spark Session
+### 3. Create `spark_session.py` for Spark Configuration
 
 ```python
 from pyspark.sql import SparkSession
@@ -122,7 +122,7 @@ def get_spark():
 
 ---
 
-### 4. Create a File data_io.py to Data I/O Functions
+### 4. Create `data_io.py` for Data I/O Functions
 
 ```python
 from config import DATA_PATH
@@ -138,7 +138,7 @@ def save_data(df, spark):
 
 ## Testing
 
-This step verifies the end-to-end data pipeline by writing to and reading from S3.
+This step verifies the end-to-end data pipeline by creating `test_s3_connection.py`, which writes to and reads from S3.
 
 ```python
 from spark_session import get_spark
@@ -146,16 +146,16 @@ from data_io import load_data, save_data
 
 spark = get_spark()
 
-# 1 Create a local DataFrame
+# 1. Create a local DataFrame
 df = spark.createDataFrame([
     (1, "Alice"),
     (2, "Bob")
 ], ["id", "name"])
 
-# 2 Write to S3 using your function
+# 2. Write to S3 using function from data_io.py
 save_data(df, spark)
 
-# 3 Read back using your function
+# 3. Read back using function from data_io.py
 df2 = load_data(spark)
 
 df2.show()
@@ -163,11 +163,13 @@ df2.show()
 
 ---
 
-## Model Training Workflow
+## Configure S3 Integration for Model Training
 
-#### 1. Set Up Model
+This section demonstrates how to integrate S3-based data I/O into the model training workflow.
 
-Define your model logic in `model.py`, if you already have a model, skip this step:
+### 1. Create `model.py` for Model Training
+
+Define your model logic in `model.py`, if you already have one, you can skip this step:
 
 ```python
 def train(df):
@@ -178,7 +180,7 @@ def train(df):
 
 ---
 
-#### 2. Train Model
+### 2. Add Data Loading and Saving to `training.py`
 
 ```python
 from spark_session import get_spark
