@@ -1,37 +1,45 @@
 # S3 Bucket Integration with Apache Spark (IDrive e2)
 
-# Note: Sensitive credentials are not included in this repository and should be configured locally on the server.
+> Note: Sensitive credentials are not included in this repository and should be configured locally on the server.
 
 ## Overview
 
-This project connects Apache Spark with IDrive e2 (S3-compatible object storage) to enable scalable data access and processing using the `s3a://` protocol.
+This project integrates Apache Spark with IDrive e2 (S3-compatible object storage) to enable scalable data access and processing via the `s3a://` protocol. It demonstrates an end-to-end data pipeline using Spark and Delta Lake.
 
 ---
 
-## Data Loading Architecture
+## Data Loading Flow
 
 ```text
-You run training.py 
-↓ 
-training.py calls load_data() 
-↓ 
-data_loader.py calls spark.read.format("delta").load(...) 
-↓ 
-Spark reads Delta Lake data from s3a://bucket/path 
-↓ 
-Delta Lake layer (data format on S3) 
-↓ 
-❗ Authentication required here 
-↓ 
-Spark looks for system credentials (~/.aws/credentials) 
-↓ 
-Uses Access Key / Secret Key to authenticate with IDrive e2 
-↓ 
-IDrive e2 returns data 
-↓ 
-Spark loads data into DataFrame (df) 
-↓ 
-df is passed to model / training
+Run training.py
+    ↓
+Initialize Spark (spark_session.py)
+    ↓
+Call load_data() (data_io.py)
+    ↓
+Spark reads Delta Lake data from S3 (IDrive e2)
+    ↓
+❗ Authentication (credentials)
+    ↓
+Load into DataFrame (df)
+    ↓
+Pass df to training step (training.py)
+```
+
+---
+
+## Data Saving Flow
+
+```text
+Training produces result_df
+    ↓
+Call save_data(result_df) (data_io.py)
+    ↓
+Spark writes data to S3 (Delta)
+    ↓
+❗ Authentication (credentials)
+    ↓
+Data stored in S3
 ```
 
 ---
@@ -67,47 +75,99 @@ chmod 600 ~/.aws/credentials
 
 ```python
 from pyspark.sql import SparkSession
+from config import S3_ENDPOINT
 
 def get_spark():
     return (
         SparkSession.builder
         .appName("delta-test")
         .config("spark.jars.packages",
-                "org.apache.hadoop:hadoop-aws:3.3.1,io.delta:delta-core_2.12:2.4.0")
+                "org.apache.hadoop:hadoop-aws:3.3.1,io.delta:delta-spark_2.12:2.4.0")
         .config("spark.hadoop.fs.s3a.endpoint",
-                "https://s3.us-midwest-1.idrivee2.com")
+                S3_ENDPOINT)
         .config("spark.hadoop.fs.s3a.path.style.access", "true")
         .config("spark.hadoop.fs.s3a.aws.credentials.provider",
                 "com.amazonaws.auth.DefaultAWSCredentialsProviderChain")
+        .config("spark.hadoop.fs.s3a.connection.ssl.enabled", "true")
         .getOrCreate()
     )
 ```
 
 ---
 
-### 3. Load Data from S3
+### 3. Data I/O Functions
+
+```python
+from config import DATA_PATH
+
+def load_data(spark):
+    return spark.read.format("delta").load(DATA_PATH)
+
+def save_data(df, spark):
+    df.write.format("delta").mode("overwrite").save(DATA_PATH)
+```    
+
+---
+
+## Testing
+
+*This step verifies the end-to-end data pipeline by writing to and reading from S3.
 
 ```python
 from spark_session import get_spark
+from data_io import load_data, save_data
 
 spark = get_spark()
 
-DATA_PATH = "s3a://your-bucket/your_name/data"
+# 1 Create a local DataFrame
+df = spark.createDataFrame([
+    (1, "Alice"),
+    (2, "Bob")
+], ["id", "name"])
 
-def load_data():
-    return spark.read.format("delta").load(DATA_PATH)
+# 2 Write to S3 using your function
+save_data(df, spark)
+
+# 3 Read back using your function
+df2 = load_data(spark)
+
+df2.show()
 ```
 
 ---
 
-### 4. Run Training
+## Model Training Workflow
+
+#### 1. Set Up Model
+
+Define your model logic in `model.py`, if you already have a model, skip this step:
 
 ```python
-from data_loader import load_data
+def train(df):
+    print("Training started...")
+    df.show()
+    return df
+```
+
+---
+
+#### 2. Train Model
+
+```python
+from spark_session import get_spark
+from data_io import load_data, save_data
 from model import train
 
-df = load_data()
-train(df)
+spark = get_spark()
+
+# Load data
+df = load_data(spark)
+
+# Train model
+result_df = train(df)
+
+# Save results
+save_data(result_df, spark)
 ```
 
 ---
@@ -116,21 +176,21 @@ train(df)
 
 * Credentials are **not hardcoded** in source code
 * Stored securely in `~/.aws/credentials`
-* Access is managed via system-level configuration
+* Access is managed via local credential configuration
 * Avoids exposing secrets in GitHub repositories
 
 ---
 
 ## Notes
 
-* Ensure the correct **endpoint** is used (based on region)
-* Bucket paths follow:
+* Ensure the correct **S3 endpoint** is used (based on the bucket region)
+* Bucket paths follow the format:
 
 ```text
 s3a://bucket-name/folder/path
 ```
 
-* Delta Lake support is enabled via Spark packages
+* Delta Lake support is enabled via Spark packages (e.g., delta-spark, hadoop-aws)
 
 ---
 
@@ -138,8 +198,9 @@ s3a://bucket-name/folder/path
 
 This setup enables:
 
-* Secure access to cloud storage
-* Clean separation between configuration and code
-* Scalable data processing using Spark
+* Secure access to cloud storage through externalized credentials
+* Clean separation between configuration, data I/O, and application logic
+* Scalable data processing using Apache Spark
+* A modular data pipeline supporting read → process → write workflows
 
 ---
