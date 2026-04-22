@@ -71,7 +71,30 @@ chmod 600 ~/.aws/credentials
 
 ---
 
-### 2. Configure Spark Session
+### 2. Set Up Environment Variables
+
+Create a `.env` file in the project root:
+
+```text
+S3_ENDPOINT=https://s3.us-west-1.idrivee2.com
+DATA_PATH=s3a://your-bucket/jiali/test
+```
+
+Create a config.py file to load environment variables:
+
+```python
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+S3_ENDPOINT = os.getenv("S3_ENDPOINT")
+DATA_PATH = os.getenv("DATA_PATH")
+```
+
+Make sure .env is included in .gitignore and not committed to the repository.
+
+### 3. Create a File spark_session.py to Configure Spark Session
 
 ```python
 from pyspark.sql import SparkSession
@@ -95,7 +118,7 @@ def get_spark():
 
 ---
 
-### 3. Data I/O Functions
+### 4. Create a File data_io.py to Data I/O Functions
 
 ```python
 from config import DATA_PATH
@@ -105,13 +128,13 @@ def load_data(spark):
 
 def save_data(df, spark):
     df.write.format("delta").mode("overwrite").save(DATA_PATH)
-```    
+```
 
 ---
 
 ## Testing
 
-*This step verifies the end-to-end data pipeline by writing to and reading from S3.
+This step verifies the end-to-end data pipeline by writing to and reading from S3.
 
 ```python
 from spark_session import get_spark
@@ -174,23 +197,23 @@ save_data(result_df, spark)
 
 ## Security Design
 
-* Credentials are **not hardcoded** in source code
-* Stored securely in `~/.aws/credentials`
-* Access is managed via local credential configuration
-* Avoids exposing secrets in GitHub repositories
+- Credentials are **not hardcoded** in source code
+- Stored securely in `~/.aws/credentials`
+- Access is managed via local credential configuration
+- Avoids exposing secrets in GitHub repositories
 
 ---
 
 ## Notes
 
-* Ensure the correct **S3 endpoint** is used (based on the bucket region)
-* Bucket paths follow the format:
+- Ensure the correct **S3 endpoint** is used (based on the bucket region)
+- Bucket paths follow the format:
 
 ```text
 s3a://bucket-name/folder/path
 ```
 
-* Delta Lake support is enabled via Spark packages (e.g., delta-spark, hadoop-aws)
+- Delta Lake support is enabled via Spark packages (e.g., delta-spark, hadoop-aws)
 
 ---
 
@@ -198,9 +221,9 @@ s3a://bucket-name/folder/path
 
 This setup enables:
 
-* Secure access to cloud storage through externalized credentials
-* Clean separation between configuration, data I/O, and application logic
-* Scalable data processing using Apache Spark
-* A modular data pipeline supporting read → process → write workflows
+- Secure access to cloud storage through externalized credentials
+- Clean separation between configuration, data I/O, and application logic
+- Scalable data processing using Apache Spark
+- A modular data pipeline supporting read → process → write workflows
 
 ---
