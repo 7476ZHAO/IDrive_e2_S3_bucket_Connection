@@ -55,8 +55,6 @@ Ensure the following are installed on your system:
 
 > PySpark is installed via `requirements.txt` and includes a local Spark runtime.
 
-> Spark requires Java to run properly.
-
 ---
 
 ### 1. Configure Server Credentials
