@@ -155,7 +155,7 @@ pip install -r requirements.txt
 
 ## Testing
 
-This step verifies the end-to-end data pipeline by creating `test_s3_connection.py`, which writes to and reads from S3.
+This step verifies the end-to-end data pipeline by creating `test_s3_connection.py`, which writes data to and reads data from S3.
 
 ```python
 from spark_session import get_spark
